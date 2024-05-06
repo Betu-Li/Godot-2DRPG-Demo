@@ -5,7 +5,9 @@ var current_state: int = -1:
 	set(v):
 		owner.transition_state(current_state,v)
 		current_state = v
+		states_time = 0
 
+var states_time:float
 
 func _ready() -> void:
 	await owner.ready
@@ -20,3 +22,4 @@ func _physics_process(delta: float) -> void:
 		current_state = next 
 	
 	owner.tick_physics(current_state,delta)
+	states_time += delta

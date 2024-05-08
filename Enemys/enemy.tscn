@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://qbdmkog5mqea"]
+
+[ext_resource type="Script" path="res://Enemys/enemy.gd" id="1_lfiwo"]
+[ext_resource type="Script" path="res://classes/StateMachine.gd" id="1_lshfi"]
+
+[node name="Enemy" type="CharacterBody2D"]
+collision_layer = 4
+script = ExtResource("1_lfiwo")
+
+[node name="Graphics" type="Node2D" parent="."]
+
+[node name="Sprite2D" type="Sprite2D" parent="Graphics"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
+[node name="StateMachine" type="Node" parent="."]
+script = ExtResource("1_lshfi")

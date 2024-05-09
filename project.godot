@@ -28,6 +28,10 @@ window/name="Godot 2D Adveb"
 
 enabled=PackedStringArray("res://addons/com.timothyqiu.animation-resetter/plugin.cfg")
 
+[filesystem]
+
+import/blender/enabled=false
+
 [input]
 
 move_left={
@@ -66,6 +70,8 @@ attack={
 2d_physics/layer_1="Environment"
 2d_physics/layer_2="Player"
 2d_physics/layer_3="Enemy"
+2d_physics/layer_4="PlayerHurtbox"
+2d_physics/layer_5="EnemyHurtbox"
 
 [rendering]
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://b6kbmhyq2fr6u"]
+[gd_scene load_steps=16 format=3 uid="uid://b6kbmhyq2fr6u"]
 
 [ext_resource type="PackedScene" uid="uid://qbdmkog5mqea" path="res://Enemys/enemy.tscn" id="1_7htfl"]
 [ext_resource type="Script" path="res://Enemys/boar.gd" id="2_ggrf5"]
@@ -6,6 +6,12 @@
 [ext_resource type="Texture2D" uid="uid://bdngasvskqk8r" path="res://Art Assets/Legacy-Fantasy - High Forest 2.0/Legacy-Fantasy - High Forest 2.3/Mob/Boar/Hit-Vanish/Hit-Sheet.png" id="3_008lx"]
 [ext_resource type="Texture2D" uid="uid://ddq27pebl4nwu" path="res://Art Assets/Legacy-Fantasy - High Forest 2.0/Legacy-Fantasy - High Forest 2.3/Mob/Boar/Run/Run-Sheet.png" id="4_yh68m"]
 [ext_resource type="Texture2D" uid="uid://c1683r0dbnngt" path="res://Art Assets/Legacy-Fantasy - High Forest 2.0/Legacy-Fantasy - High Forest 2.3/Mob/Boar/Walk/Walk-Base-Sheet.png" id="5_ovswb"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4skei"]
+size = Vector2(22, 26)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_p67xb"]
+size = Vector2(38, 6)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_xwrtx"]
 radius = 11.0
@@ -244,6 +250,26 @@ collision_mask = 3
 position = Vector2(-15, 15)
 target_position = Vector2(0, 6)
 
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Graphics/Hitbox" index="0"]
+position = Vector2(-1, 3)
+shape = SubResource("RectangleShape2D_4skei")
+debug_color = Color(0.980258, 0, 0.381196, 0.42)
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="Graphics/Hitbox" index="1"]
+position = Vector2(-2, 7)
+shape = SubResource("RectangleShape2D_p67xb")
+debug_color = Color(0.985844, 0, 0.329686, 0.42)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Graphics/Hurtbox" index="0"]
+position = Vector2(-1, 3)
+shape = SubResource("RectangleShape2D_4skei")
+debug_color = Color(0.980258, 0, 0.381196, 0.42)
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="Graphics/Hurtbox" index="1"]
+position = Vector2(-2, 7)
+shape = SubResource("RectangleShape2D_p67xb")
+debug_color = Color(0.985844, 0, 0.329686, 0.42)
+
 [node name="CollisionShape2D" parent="." index="1"]
 position = Vector2(0, -11)
 shape = SubResource("CircleShape2D_xwrtx")
@@ -256,3 +282,5 @@ libraries = {
 [node name="CalmDownTimer" type="Timer" parent="." index="4"]
 wait_time = 2.5
 one_shot = true
+
+[connection signal="hurt" from="Graphics/Hurtbox" to="." method="_on_hurtbox_hurt"]

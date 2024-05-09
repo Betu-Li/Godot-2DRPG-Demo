@@ -11,6 +11,13 @@ enum State{
 @onready var floor_check:RayCast2D = $Graphics/FloorCheck
 @onready var calm_down_timer:Timer = $CalmDownTimer
 
+
+func can_see_player() -> bool:#是否看到玩家
+	if not player_check.is_colliding():
+		return false
+	return player_check.get_collider() is Player
+
+
 func tick_physics(state: State, delta: float) -> void:#物理更新
 	match state:
 		State.IDLE:
@@ -23,11 +30,11 @@ func tick_physics(state: State, delta: float) -> void:#物理更新
 			if wall_check.is_colliding() or not floor_check.is_colliding():#碰到墙壁或者没有地板就转向
 				direction *= -1
 			move(max_speed,delta)
-			if player_check.is_colliding():#追击玩家
+			if can_see_player():#追击玩家
 				calm_down_timer.start()#开始冷静时间
 
 func get_next_state(state: State) -> State:#获取下一个状态
-	if player_check.is_colliding():#玩家在附近就追击
+	if can_see_player():#玩家在附近就追击
 		return State.RUN
 	
 	match state:

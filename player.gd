@@ -7,35 +7,52 @@ enum State{
 	FALL,
 	LANDING,
 	WALL_SLIDING,
-	WALL_JUMP
+	WALL_JUMP,
+	ATTACK_1,
+	ATTACK_2,
+	ATTACK_3,
 }
 
-const GROUP_STATES := [State.RUNNING,State.IDLE,State.LANDING]
+const GROUP_STATES := [
+	State.RUNNING,
+	State.IDLE,
+	State.LANDING,
+	State.ATTACK_1,
+	State.ATTACK_2,
+	State.ATTACK_3
+	]#地面上的状态
 const RUN_SPEED := 150.0
 const JUMP_VELOCITY := -320.0
 const FLOOR_ACCELERATION := RUN_SPEED/0.2
 const AIR_ACCELERATION := RUN_SPEED/0.1
 const WALL_JUMP_VELOCITY := Vector2(380,-280.0)
 
-# 获取重力加速度
-var default_gravity = ProjectSettings.get_setting("physics/2d/default_gravity") as float
+
+var default_gravity = ProjectSettings.get_setting("physics/2d/default_gravity") as float # 获取重力加速度
 var is_first_tick = false
+var is_combo_request := false #记录连击事件是否发生
+
+@export var can_combo :=false #设置一个导出属性，作为动画内的是否可以连击的关键帧
 
 @onready var graphics: Node2D = $Graphics
-@onready var animation_playe: AnimationPlayer = $AnimationPlayer
+@onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var coyote_timer: Timer = $CoyoteTimer
 @onready var jump_request_timer: Timer = $JumpRequestTimer
+@onready var attack_request_timer: Timer = $AttackRequestTimer
 @onready var hand_checker: RayCast2D = $Graphics/HandChecker
 @onready var foot_checker : RayCast2D =$Graphics/FootChecker
 @onready var state_machine: StateMachine = $StateMachine
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("jump"):
-		jump_request_timer.start()
+func _unhandled_input(event: InputEvent) -> void:#处理输入事件
+	if event.is_action_pressed("jump"):#按下跳跃键
+		jump_request_timer.start()#开始计时器
 	if event.is_action_released("jump"):
 		jump_request_timer.stop()
-		if velocity.y < JUMP_VELOCITY / 2:
+		if velocity.y < JUMP_VELOCITY / 2:#如果跳跃时速度小于跳跃速度的一半，则将速度设置为跳跃速度的一半
 			velocity.y = JUMP_VELOCITY / 2
+
+	if event.is_action_pressed("attack") and can_combo:
+		is_combo_request = true
 
 #func _physics_process(delta:float) -> void:
 	#var direction =Input.get_axis("move_left","move_right")
@@ -51,17 +68,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		#jump_request_timer.stop()
 	#if is_on_floor():
 		#if is_zero_approx(direction) and velocity.x==0:
-			#animation_playe.play("idle")
+			#animation_player.play("idle")
 			#if Input.is_action_pressed("move_squat"):
-				#animation_playe.play("squat")
+				#animation_player.play("squat")
 			#if Input.is_action_pressed("move_block"):
-				#animation_playe.play("block")
+				#animation_player.play("block")
 		#else:
-			#animation_playe.play("running")
+			#animation_player.play("running")
 	#elif velocity.y < 0 :
-			#animation_playe.play("jump")
+			#animation_player.play("jump")
 	#else :
-		#animation_playe.play("fall")
+		#animation_player.play("fall")
 	#if not is_zero_approx(direction):
 		#sprite_2d.flip_h = direction < 0
 		#
@@ -84,19 +101,22 @@ func get_next_state(state: State) -> State:
 	if should_jump:
 		return State.JUMP
 	
+	if state in GROUP_STATES and not is_on_floor():#如果当前处于地面状态且不在地面上，则返回下落状态
+		return State.FALL
+
 	var direction :=Input.get_axis("move_left","move_right")
 	var is_still := is_zero_approx(direction) and is_zero_approx(velocity.x)
 	
 	match state:
 		State.IDLE:
-			if not is_on_floor():
-				return State.FALL
+			if Input.is_action_pressed("attack"):#按下攻击键
+				return State.ATTACK_1
 			if not is_still:
 				return State.RUNNING
 		
 		State.RUNNING:
-			if not is_on_floor():
-				return State.FALL
+			if Input.is_action_pressed("attack"):#按下攻击键
+				return State.ATTACK_1
 			if is_still:
 				return State.IDLE
 		
@@ -111,7 +131,9 @@ func get_next_state(state: State) -> State:
 				return State.WALL_SLIDING
 		
 		State.LANDING:
-			if not animation_playe.is_playing():
+			if not is_still:#如果角色在落地时移动，则返回奔跑状态
+				return State.RUNNING
+			if not animation_player.is_playing():
 				return State.IDLE
 		
 		State.WALL_SLIDING:
@@ -127,11 +149,23 @@ func get_next_state(state: State) -> State:
 				return State.WALL_SLIDING
 			if velocity.y >=0:
 				return State.FALL
+		
+		State.ATTACK_1:
+			if not animation_player.is_playing():#动画播放完毕
+				return State.ATTACK_2 if is_combo_request else State.IDLE #如果连击事件发生，则返回下一个攻击状态，否则返回空闲状态
+
+		State.ATTACK_2:
+			if not animation_player.is_playing():#动画播放完毕
+				return State.ATTACK_3 if is_combo_request else State.IDLE #如果连击事件发生，则返回下一个攻击状态，否则返回空闲状态
+
+		State.ATTACK_3:
+			if not animation_player.is_playing():#动画播放完毕
+				return State.IDLE
 			
 	return state
 
 
-func transition_state(from: State ,to: State)-> void:
+func transition_state(from: State ,to: State)-> void:#状态转化播放动画
 	# print("[%s] %s => %s"%[
 	# 	Engine.get_physics_frames(),
 	# 	State.keys()[from] if from != -1 else "<START>",
@@ -142,33 +176,45 @@ func transition_state(from: State ,to: State)-> void:
 		coyote_timer.stop()
 	match to:
 		State.IDLE:
-			animation_playe.play("idle")
+			animation_player.play("idle")
 		
 		State.RUNNING:
-			animation_playe.play("running")
+			animation_player.play("running")
 		
 		State.JUMP:
-			animation_playe.play("jump")
+			animation_player.play("jump")
 			velocity.y = JUMP_VELOCITY
 			coyote_timer.stop()
 			jump_request_timer.stop()
 		
 		State.FALL:
-			animation_playe.play("fall")
+			animation_player.play("fall")
 			if from in GROUP_STATES:
 				coyote_timer.start()
 		
 		State.LANDING:
-			animation_playe.play("landing")
+			animation_player.play("landing")
 		
 		State.WALL_SLIDING:
-			animation_playe.play("wall_sliding")
+			animation_player.play("wall_sliding")
 		
 		State.WALL_JUMP:
-			animation_playe.play("jump")
+			animation_player.play("jump")
 			velocity = WALL_JUMP_VELOCITY
 			velocity.x *= get_wall_normal().x
 			jump_request_timer.stop()
+
+		State.ATTACK_1:
+			animation_player.play("attack_1")
+			is_combo_request = false
+		
+		State.ATTACK_2:
+			animation_player.play("attack_2")
+			is_combo_request = false
+		
+		State.ATTACK_3:
+			animation_player.play("attack_3")
+			is_combo_request = false
 
 	is_first_tick = true
 
@@ -199,6 +245,9 @@ func tick_physics(state: State, delta: float)->void:
 				graphics.scale.x = get_wall_normal().x#翻转角色，使角色背对墙壁
 			else:
 				move(default_gravity,delta)
+		
+		State.ATTACK_1,State.ATTACK_2,State.ATTACK_3:#三个状态下的攻击逻辑相同，所以用枚举合并处理
+			stand(default_gravity,delta)#攻击时不移动
 
 	is_first_tick = false
 

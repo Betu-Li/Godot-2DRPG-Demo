@@ -10,6 +10,7 @@ enum State{
 @onready var player_check:RayCast2D = $Graphics/PlayerCheck
 @onready var floor_check:RayCast2D = $Graphics/FloorCheck
 @onready var calm_down_timer:Timer = $CalmDownTimer
+@onready var stats:Stats = $Stats
 
 
 func can_see_player() -> bool:#是否看到玩家
@@ -81,3 +82,6 @@ func transition_state(from: State ,to: State)-> void:
 
 func _on_hurtbox_hurt(hitbox: Hitbox) -> void:
 	print("Onch!")
+	stats.health -= 1
+	if stats.health == 0:#生命值为0时销毁
+		queue_free()

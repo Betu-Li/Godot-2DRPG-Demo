@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://b6kbmhyq2fr6u"]
+[gd_scene load_steps=17 format=3 uid="uid://b6kbmhyq2fr6u"]
 
 [ext_resource type="PackedScene" uid="uid://qbdmkog5mqea" path="res://Enemys/enemy.tscn" id="1_7htfl"]
 [ext_resource type="Script" path="res://Enemys/boar.gd" id="2_ggrf5"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://bdngasvskqk8r" path="res://Art Assets/Legacy-Fantasy - High Forest 2.0/Legacy-Fantasy - High Forest 2.3/Mob/Boar/Hit-Vanish/Hit-Sheet.png" id="3_008lx"]
 [ext_resource type="Texture2D" uid="uid://ddq27pebl4nwu" path="res://Art Assets/Legacy-Fantasy - High Forest 2.0/Legacy-Fantasy - High Forest 2.3/Mob/Boar/Run/Run-Sheet.png" id="4_yh68m"]
 [ext_resource type="Texture2D" uid="uid://c1683r0dbnngt" path="res://Art Assets/Legacy-Fantasy - High Forest 2.0/Legacy-Fantasy - High Forest 2.3/Mob/Boar/Walk/Walk-Base-Sheet.png" id="5_ovswb"]
+[ext_resource type="Script" path="res://classes/Stats.gd" id="7_hwl4n"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_4skei"]
 size = Vector2(22, 26)
@@ -282,5 +283,8 @@ libraries = {
 [node name="CalmDownTimer" type="Timer" parent="." index="4"]
 wait_time = 2.5
 one_shot = true
+
+[node name="Stats" type="Node" parent="." index="5"]
+script = ExtResource("7_hwl4n")
 
 [connection signal="hurt" from="Graphics/Hurtbox" to="." method="_on_hurtbox_hurt"]
